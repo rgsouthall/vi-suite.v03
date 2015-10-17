@@ -290,7 +290,7 @@ class LiViNode(bpy.types.Node, ViNodes):
             if self.canalysismenu == '0':
                 newrow(layout, "Building type:", self, 'bambuildmenu')
                 newrow(layout, "Storeys:", self, 'buildstorey')
-                newrow(layout, 'HDR:', self, 'hdr')
+            newrow(layout, 'HDR:', self, 'hdr')
                 
         elif self.contextmenu == 'CBDM':
             row = layout.row()
@@ -370,7 +370,7 @@ class LiViNode(bpy.types.Node, ViNodes):
                                 bpy.ops.object.lamp_add(type='SUN')
                                 sun = bpy.context.object
                                 sun['VIType'] = 'Sun'
-                    if self.hdr == True:
+                    if self.hdr:
                         hdrexport(scene, f, frame, self, sunexport(scene, self, locnode, f) + skyexport(self['skynum']))
                     self.outputs['Context out']['Text'][str(frame)] = sunexport(scene, self, locnode, f) + skyexport(self['skynum'])
 
@@ -382,7 +382,8 @@ class LiViNode(bpy.types.Node, ViNodes):
                 shutil.copyfile(self.radname, "{}-0.sky".format(scene['viparams']['filebase']))
                 with open(self.radname, 'r') as radfiler:
                     self.outputs['Context out']['Text'][str(scene['liparams']['fs'])] =  [radfiler.read()]
-                hdrexport(scene, 0, 0, self, radfiler.read())
+                    if self.hdr:
+                        hdrexport(scene, 0, scene.frame_current, self, radfiler.read())
             elif self['skynum'] == 6:
                 self.outputs['Context out']['Text'][str(scene.frame_current)] = ''
         
@@ -406,14 +407,14 @@ class LiViNode(bpy.types.Node, ViNodes):
 
         elif self.contextmenu == "Compliance":
             self['skytypeparams'] = ("-b 22.86 -c", "-b 22.86 -c", "+s")[int(self.canalysismenu)]
+            skyentry = sunexport(scene, self, 0, 0) + skyexport(3)
             if self.canalysismenu in ('0', '1'):
                 self.starttime = datetime.datetime(datetime.datetime.now().year, 1, 1, 12)
-                locnode = 0
-                if self.hdr == True:
-                    hdrexport(scene, f, frame, self, skyexport(3))
+                if self.hdr:
+                    hdrexport(scene, 0, scene.frame_current, self, skyentry)
             else:
                 self.starttime = datetime.datetime(datetime.datetime.now().year, 9, 11, 9)
-            self.outputs['Context out']['Text'][str(scene['liparams']['fs'])] = sunexport(scene, self, locnode, 0) + skyexport(self['skynum'])
+            self.outputs['Context out']['Text'][str(scene['liparams']['fs'])] = skyentry
     
     def postexport(self):    
         typedict = {'Basic': self.banalysismenu, 'Compliance': self.canalysismenu, 'CBDM': self.cbanalysismenu}

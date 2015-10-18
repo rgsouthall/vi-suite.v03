@@ -2069,7 +2069,7 @@ class EnViInf(bpy.types.Node, EnViNodes):
     envi_inftype = bpy.props.EnumProperty(items = [("0", "None", "No infiltration"), ("1", 'Flow/Zone', "Absolute flow rate in m{}/s".format(u'\u00b3')), ("2", "Flow/Area", 'Flow in m{}/s per m{} floor area'.format(u'\u00b3', u'\u00b2')),
                                  ("3", "Flow/ExteriorArea", 'Flow in m{}/s per m{} external surface area'.format(u'\u00b3', u'\u00b2')), ("4", "Flow/ExteriorWallArea", 'Flow in m{}/s per m{} external wall surface area'.format(u'\u00b3', u'\u00b2')),
                                  ("4", "ACH", "ACH flow rate")], name = "", description = "The type of zone infiltration specification", default = "0")
-    envi_inflevel = bpy.props.FloatProperty(name = "Level", description = "Level of Infiltration", min = 0, max = 500, default = 0.001)
+    envi_inflevel = bpy.props.FloatProperty(name = "", description = "Level of Infiltration", min = 0, max = 500, default = 0.001)
 
     def init(self, context):
         self['nodeid'] = nodeid(self)

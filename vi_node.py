@@ -258,7 +258,7 @@ class LiViNode(bpy.types.Node, ViNodes):
             if self.skymenu in ('0', '1', '2'):
                 newrow(layout, "Start hour:", self, 'shour')
                 newrow(layout, "Start day:", self, 'sdoy')
-                newrow(layout, "Animation;", self, 'animated')
+                newrow(layout, "Animation:", self, 'animated')
                 if self.animated:
                     newrow(layout, "Start frame:", self, 'startframe')
                     row = layout.row()
@@ -267,7 +267,7 @@ class LiViNode(bpy.types.Node, ViNodes):
                     newrow(layout, "End hour:", self, 'ehour')
                     newrow(layout, "End day of year:", self, 'edoy')
                     newrow(layout, "Interval (hours):", self, 'interval')
-                newrow(layout, "Turbidity", self, 'turb')
+                newrow(layout, "Turbidity:", self, 'turb')
             elif self.skymenu == '4':
                 row = layout.row()
                 row.label("HDR file:")

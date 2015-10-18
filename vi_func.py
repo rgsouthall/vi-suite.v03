@@ -1739,7 +1739,7 @@ def retobjs(otypes):
     scene = bpy.context.scene
     validobs = [o for o in scene.objects if o.hide == False and o.layers[scene.active_layer] == True]
     if otypes == 'livig':
-        return([o for o in validobs if o.type == 'MESH' and o.data.materials and not (o.parent and os.path.isfile(o.iesname)) and not o.lila \
+        return([o for o in validobs if o.type == 'MESH' and o.data.materials and not (o.parent and os.path.isfile(o.ies_name)) and not o.lila \
         and o.lires == 0 and o.get('VIType') not in ('SPathMesh', 'SunMesh', 'Wind_Plane', 'SkyMesh')])
     elif otypes == 'livigeno':
         return([o for o in validobs if o.type == 'MESH' and o.data.materials and not any([m.livi_sense for m in o.data.materials])])

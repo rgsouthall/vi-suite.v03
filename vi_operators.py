@@ -759,7 +759,7 @@ class VIEW3D_OT_EnDisplay(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        scene, valheaders = context.scene, []
+        scene, solvalheaders, airvalheaders = context.scene, [], []
         resnode = bpy.data.node_groups[scene['viparams']['resnode'].split('@')[1]].nodes[scene['viparams']['resnode'].split('@')[0]]
         eresobs = {o.name: o.name.upper() for o in bpy.data.objects if o.name.upper() in [rval[0] for rval in resnode['resdict'].values()]}
 #        ereslinks = {o.name: o.name.upper() for o in bpy.data.objects if o.name.upper() in [rval[0] for rval in resnode['resdict'].values()]}
@@ -774,18 +774,18 @@ class VIEW3D_OT_EnDisplay(bpy.types.Operator):
                 sun = suns[0]
             for headvals in resnode['resdict'].items():
                 if len(headvals[1]) == 2 and headvals[1][1] == 'Direct Solar (W/m^2)':
-                    valheaders.append(headvals[0])
+                    solvalheaders.append(headvals[0])
                 if len(headvals[1]) == 2 and headvals[1][1] == 'Diffuse Solar (W/m^2)':
-                     valheaders.append(headvals[0])
-            sunposenvi(scene, resnode, range(scene.frame_start, scene.frame_end), sun, valheaders)
+                     solvalheaders.append(headvals[0])
+            sunposenvi(scene, resnode, range(scene.frame_start, scene.frame_end), sun, solvalheaders)
 
         if scene.resaa_disp:
             for rtype in ('Temperature (degC)', 'Wind Speed (m/s)', 'Wind Direction (deg)', 'Humidity (%)'):
                 for headvals in resnode['resdict'].items():
                     if headvals[1][0] == 'Climate' and headvals[1][1] == rtype:
-                        valheaders.append(headvals[0])
+                        airvalheaders.append(headvals[0])
 
-            self._handle_air = bpy.types.SpaceView3D.draw_handler_add(en_air, (self, context, resnode, valheaders), 'WINDOW', 'POST_PIXEL')
+            self._handle_air = bpy.types.SpaceView3D.draw_handler_add(en_air, (self, context, resnode, airvalheaders), 'WINDOW', 'POST_PIXEL')
 
         if scene.reszt_disp:
             envizres(scene, eresobs, resnode, 'Temp')

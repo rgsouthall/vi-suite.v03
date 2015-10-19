@@ -445,22 +445,25 @@ def pregeo(op):
             scene.objects.active = obj
         
         elif obj.envi_type == '1':
+            selobj(scene, obj)
             bpy.ops.object.duplicate()
-            en_obj = scene.objects.active
+            en_obj = scene.objects.active  
+            en_obj.name = 'en_' + obj.name
+            
+            if 'en_shading' not in [m.name for m in bpy.data.materials]:
+                bpy.data.materials.new('en_shading')
+                        
             if not en_obj.material_slots:
-                if 'en_shading' not in [m.name for m in bpy.data.materials]:
-                    shadmat = bpy.data.materials.new('en_shading')
-                else:
-                    shadmat = bpy.data.materials['en_shading']
-                bpy.ops.object.material_slot_add()
-                
+                bpy.ops.object.material_slot_add()                
             else:
                 while len(en_obj.material_slots) > 1:
                     bpy.ops.object.material_slot_remove()
+
+            shadmat = bpy.data.materials['en_shading']
             shadmat.envi_con_type = 'Shading'
             en_obj.material_slots[0].material = shadmat
             en_obj.material_slots[0].material.diffuse_color = (1, 0, 0)
-            en_obj.layers[0], en_obj.layers[1] = False, True
+            en_obj.layers[1], en_obj.layers[0] = True, False
                 
 def writeafn(exp_op, en_idf, enng):
     badnodes = [node for node in enng.nodes if node.use_custom_color]

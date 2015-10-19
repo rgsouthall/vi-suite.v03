@@ -385,7 +385,9 @@ def pregeo(op):
     [enng.nodes.remove(node) for node in enng.nodes if hasattr(node, 'zone') and node.zone[3:] not in [o.name for o in enviobjs]]
                 
     for obj in enviobjs:
-        if obj.envi_type == '0':
+        if obj.envi_type == '0' and not obj.data.materials:
+            op.report({'ERROR'}, 'Object {} is specified as a thermal zone but has no materials'.format(obj.name))
+        elif obj.envi_type == '0':
             obj["floorarea"] = sum([facearea(obj, face) for face in obj.data.polygons if obj.data.materials[face.material_index].envi_con_type =='Floor'])
     
             for mats in obj.data.materials:

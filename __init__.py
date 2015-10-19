@@ -90,8 +90,17 @@ def eupdate(self, context):
                     res = bm.verts.layers.float['res{}'.format(frame)]
                     extrudes = [scene.vi_disp_3dlevel * ((v[res]-mino)/(maxo - mino)) * v.normal.normalized() for v in bm.verts] if scene.vi_leg_scale == '0' else \
                                 [0.1 * scene.vi_disp_3dlevel * (math.log10(maxo * (v[res] + 1 - mino)/(maxo - mino))) * v.normal.normalized() for v in bm.verts]  
+#                    earray = numpy.add(array(extrudes), array([vert[skb] for vert in bm.verts])).flatten()
+
                     for v, vert in enumerate(bm.verts):
+#                        vert[skf] = earray[v]
                         vert[skf] = vert[skb] + extrudes[v]
+#            vecs = [v[skb] + extrudes[vi] for vi, v in enumerate(bm.verts)]
+#            coords = [0] * 
+#            print(earray)
+#            print(len([v[skb] + extrudes[vi] for vi, v in enumerate(bm.verts)]), len(o.data.shape_keys.key_blocks[str(frame)].data))            
+#            o.data.shape_keys.key_blocks[str(frame)].data.foreach_set('co', earray)
+#            o.data.update()
 
             bm.transform(o.matrix_world.inverted())
             bm.to_mesh(o.data)
@@ -110,6 +119,7 @@ def wupdate(self, context):
         
 def legupdate(self, context):
     scene = context.scene
+    legdiff = scene.vi_leg_max - scene.vi_leg_min
     for frame in range(scene['liparams']['fs'], scene['liparams']['fe'] + 1):
         for o in [o for o in scene.objects if o.get('lires')]:
             bm = bmesh.new()
@@ -119,8 +129,9 @@ def legupdate(self, context):
             elif bm.verts.layers.float.get('res{}'.format(frame)):
                 livires = bm.verts.layers.float['res{}'.format(frame)]                
             try:
-                vals = array([(f[livires] - scene.vi_leg_min)/(scene.vi_leg_max - scene.vi_leg_min) for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
-                        array([(sum([vert[livires] for vert in f.verts])/len(f.verts) - scene.vi_leg_min)/(scene.vi_leg_max - scene.vi_leg_min) for f in bm.faces])
+                vals = array([(f[livires] - scene.vi_leg_min)/legdiff for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
+                        array([(sum([vert[livires] for vert in f.verts])/len(f.verts) - scene.vi_leg_min)/legdiff for f in bm.faces])
+
             except Exception as e:
                 print('there is an error in results retrieval ' + e)
                 vals = array([0 for f in bm.faces])
@@ -133,9 +144,14 @@ def legupdate(self, context):
                 bins = array([1 - math.log10(i)/math.log10(21) for i in range(1, 22)][::-1])
                 bins = bins[1:-1]
             nmatis = digitize(vals, bins)
-            for fi, f in enumerate(o.data.polygons):
-                f.material_index = nmatis[fi]
-                f.keyframe_insert('material_index', frame=frame)
+            o.data.polygons.foreach_set("material_index", nmatis)
+            o.data.update()
+            if scene['liparams']['fe'] > scene['liparams']['fs']:
+                [face.keyframe_insert('material_index', frame=frame) for face in o.data.polygons]
+#                for fi, f in enumerate(o.data.polygons):
+#                f.material_index = nmatis[fi]
+                
+#                    f.keyframe_insert('material_index', frame=frame)
     scene.frame_set(scene.frame_current)
 
 def liviresupdate(self, context):

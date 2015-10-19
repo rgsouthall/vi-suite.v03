@@ -16,10 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy, os, math, subprocess, datetime, bmesh, shutil
-from math import sin, cos, tan, pi
+import bpy, os, subprocess, datetime, bmesh
+from math import sin, cos, pi
 from subprocess import PIPE, Popen, STDOUT
-from .vi_func import clearscene, solarPosition, mtx2vals, retobjs, selobj, selmesh, vertarea, radpoints, clearlayers, radmesh
+from .vi_func import clearscene, solarPosition, retobjs, selobj, radpoints, clearlayers, radmesh
 
 
 def radgexport(export_op, node, **kwargs):

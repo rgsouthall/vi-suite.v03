@@ -1,4 +1,4 @@
-import bpy, os, sys, multiprocessing, mathutils, bmesh, datetime, colorsys, bgl, blf, subprocess, shlex
+import bpy, os, sys, multiprocessing, mathutils, bmesh, datetime, colorsys, bgl, blf, shlex
 from subprocess import Popen, PIPE, STDOUT
 from numpy import array, digitize, amax, amin, average, zeros, inner
 from numpy import sum as nsum
@@ -270,40 +270,12 @@ def lhcalcapply(self, scene, frames, rtcmds):
             g[res] = resvals[g[cindex] - 1]    
     bm.to_mesh(self.data)
     bm.free()
-    
-#def cwcalcapply(self, scene, frame, rtcmd):
-#    if frame == scene.frame_start:
-#        self['omax'], self['omin'], self['oave'] = {}, {}, {}
-#    if str(frame) in self['rtpoints']:
-#        rtframe = frame
-#    else:
-#        kints = [int(k) for k in self["rtpoints"].keys()]
-#        rtframe  = max(kints) if frame > max(kints) else  min(kints)
-#    rtrun = Popen(rtcmd.split(), stdin = PIPE, stdout=PIPE, stderr=STDOUT).communicate(input = self["rtpoints"][str(rtframe)].encode('utf-8'))
-#    reslines = [[float(rv) for rv in r.split('\t')[:3]] for r in rtrun[0].decode().splitlines()]    
-#    rescw = [(0.26 * r[0] + 0.67 * r[1] + 0.065 * r[2]) * 0.001 for r in reslines]
-#    self['omax']['cw{}'.format(frame)] = max(rescw)
-#    self['omin']['cw{}'.format(frame)] = min(rescw)
-#    self['oave']['cw{}'.format(frame)] = sum(rescw)/len(rescw)
-#
-#    selobj(scene, self)
-#    bm = bmesh.new()
-#    bm.from_mesh(self.data)
-#    clearlayers(bm)
-#    geom = bm.verts if self['cpoint'] == 1 else bm.faces
-#    cindex = geom.layers.int['cindex']
-#    geom.layers.float.new('res{}'.format(frame))
-#    res =  geom.layers.float['res{}'.format(frame)]
-#    for g in [g for g in geom if g[cindex] > 0]:
-#        g[res] = rescw[g[cindex] - 1]
-#        
-#    bm.to_mesh(self.data)
-#    bm.free()
-    
+        
 def lividisplay(self, scene): 
     unitdict = {'Lux': 'illu', u'W/m\u00b2': 'irrad', 'DF (%)': 'df', 'DA (%)': 'res', 'UDI-f (%)': 'low', 'UDI-s (%)': 'sup', 'UDI-a (%)': 'auto', 'UDI-e (%)': 'high',
                 'Sky View': 'sv', 'kLuxHours': 'res', u'kWh/m\u00b2': 'res', '% Sunlit': 'res'}
-    
+    smaxres, sminres =  max(scene['liparams']['maxres'].values()), min(scene['liparams']['minres'].values())
+    sresdiff = smaxres - sminres
     for frame in range(scene['liparams']['fs'], scene['liparams']['fe'] + 1):  
         bm = bmesh.new()
         bm.from_mesh(self.data)
@@ -312,10 +284,10 @@ def lividisplay(self, scene):
         res = geom.layers.float['res{}'.format(frame)]
         oreslist = [g[livires] for g in geom]
         self['omax'][str(frame)], self['omin'][str(frame)], self['oave'][str(frame)] = max(oreslist), min(oreslist), sum(oreslist)/len(oreslist)
-        smaxres, sminres =  max(scene['liparams']['maxres'].values()), min(scene['liparams']['minres'].values())
+        
         if smaxres > sminres:
-            vals = array([(f[livires] - sminres)/(smaxres - sminres) for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
-                    ([(sum([vert[livires] for vert in f.verts])/len(f.verts) - sminres)/(smaxres - sminres) for f in bm.faces])
+            vals = array([(f[livires] - sminres)/sresdiff for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
+                    ([(sum([vert[livires] for vert in f.verts])/len(f.verts) - sminres)/sresdiff for f in bm.faces])
         else:
             vals = array([max(scene['liparams']['maxres'].values()) for g in geom])
             
@@ -324,11 +296,10 @@ def lividisplay(self, scene):
                 g[res] = g[livires]        
         bins = array([0.05*i for i in range(1, 20)])
         nmatis = digitize(vals, bins)
-        for fi, f in enumerate(bm.faces):
-            f.material_index = nmatis[fi]
-        bm.to_mesh(self.data)
+#        bm.to_mesh(self.data)
         bm.free()
-        if scene['liparams']['fe'] - scene['liparams']['fs'] > 0:
+        self.data.polygons.foreach_set('material_index', nmatis)
+        if scene['liparams']['fe'] > scene['liparams']['fs']:
             [face.keyframe_insert('material_index', frame=frame) for face in self.data.polygons] 
             
 def retcrits(simnode, matname):
@@ -569,7 +540,7 @@ def compdisplay(self, scene):
                 f.material_index = nmatis[fi]
             elif scene.li_disp_sv == '1':
                 f.material_index = 11 if vals[fi] > 0 else 19
-        if scene['liparams']['fe'] - scene['liparams']['fs'] > 0:
+        if scene['liparams']['fe'] > scene['liparams']['fs']:
             [self.data.polygons[fi].keyframe_insert('material_index', frame=frame) for fi in range(len(bm.faces))] 
     bm.to_mesh(self.data)
     bm.free()

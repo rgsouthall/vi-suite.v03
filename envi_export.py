@@ -385,62 +385,79 @@ def pregeo(op):
     [enng.nodes.remove(node) for node in enng.nodes if hasattr(node, 'zone') and node.zone[3:] not in [o.name for o in enviobjs]]
                 
     for obj in enviobjs:
-        obj["floorarea"] = sum([facearea(obj, face) for face in obj.data.polygons if obj.data.materials[face.material_index].envi_con_type =='Floor' and obj.envi_type == '0'])
-
-        for mats in obj.data.materials:
-            if 'en_'+mats.name not in [mat.name for mat in bpy.data.materials]:
-                mats.copy().name = 'en_'+mats.name
-
-        selobj(scene, obj)
-        selmesh('desel')
-        bpy.ops.object.duplicate()
-
-        en_obj = scene.objects.active
-        obj.select, en_obj.select, en_obj.name, en_obj.data.name, en_obj.layers[1], en_obj.layers[0], bpy.data.scenes[0].layers[0:2] = False, True, 'en_'+obj.name, en_obj.data.name, True, False, (False, True)
-        for s, slots in enumerate(en_obj.material_slots):
-            slots.material = bpy.data.materials['en_'+obj.data.materials[s].name]
-            slots.material.envi_export = True
-
-            dcdict = {'Wall':(1,1,1), 'Partition':(0.5,0.5,0.5), 'Window':(0,1,1), 'Roof':(0,1,0), 'Ceiling':(0, 0.5, 0), 'Floor':(0.44,0.185,0.07), 'Ground':(0.22, 0.09, 0.04), 'Shading':(1, 0, 0), 'Aperture':(0, 0, 1)}
-            if slots.material.envi_con_type in dcdict:
-                slots.material.diffuse_color = dcdict[slots.material.envi_con_type]
-
-        for poly in en_obj.data.polygons:
-            if en_obj.data.materials[poly.material_index].envi_con_type == 'None' or (en_obj.data.materials[poly.material_index].envi_con_makeup == '1' and en_obj.data.materials[poly.material_index].envi_layero == '0'):
-                poly.select = True 
-                
-        selmesh('delf')
-        en_obj.select = False
-        bm = bmesh.new()
-        bm.from_mesh(en_obj.data)
-        bmesh.ops.triangulate(bm, faces = [face for face in bm.faces if en_obj.data.materials[face.material_index].envi_con_type == 'Shading'])
-        bm.transform(en_obj.matrix_world)
-        en_obj["volume"] = bm.calc_volume()
-        bm.transform(en_obj.matrix_world.inverted())
-        bm.to_mesh(en_obj.data)        
-        bm.free()
-        
-        if en_obj.envi_type == '0':
-            if en_obj.name not in [node.zone for node in enng.nodes if hasattr(node, 'zone')]:
-                enng.nodes.new(type = 'EnViZone').zone = en_obj.name
-            else:
-                for node in enng.nodes:
-                    if hasattr(node, 'zone') and node.zone == en_obj.name:
-                        node.zupdate(bpy.context)
-            for node in enng.nodes:
-                if hasattr(node, 'emszone') and node.emszone == en_obj.name:
-                    node.zupdate(bpy.context)
-
-        if any([mat.envi_afsurface for mat in en_obj.data.materials]):
-            enng['enviparams']['afn'] = 1
-            if 'Control' not in [node.bl_label for node in enng.nodes]:
-                enng.nodes.new(type = 'AFNCon')         
-                enng.use_fake_user = 1
+        if obj.envi_type == '0':
+            obj["floorarea"] = sum([facearea(obj, face) for face in obj.data.polygons if obj.data.materials[face.material_index].envi_con_type =='Floor'])
+    
+            for mats in obj.data.materials:
+                if 'en_'+mats.name not in [mat.name for mat in bpy.data.materials]:
+                    mats.copy().name = 'en_'+mats.name
+    
+            selobj(scene, obj)
+            selmesh('desel')
+            bpy.ops.object.duplicate()
+    
+            en_obj = scene.objects.active
+            obj.select, en_obj.select, en_obj.name, en_obj.data.name, en_obj.layers[1], en_obj.layers[0], bpy.data.scenes[0].layers[0:2] = False, True, 'en_'+obj.name, en_obj.data.name, True, False, (False, True)
+            for s, slots in enumerate(en_obj.material_slots):
+                slots.material = bpy.data.materials['en_'+obj.data.materials[s].name]
+                slots.material.envi_export = True
+    
+                dcdict = {'Wall':(1,1,1), 'Partition':(0.5,0.5,0.5), 'Window':(0,1,1), 'Roof':(0,1,0), 'Ceiling':(0, 0.5, 0), 'Floor':(0.44,0.185,0.07), 'Ground':(0.22, 0.09, 0.04), 'Shading':(1, 0, 0), 'Aperture':(0, 0, 1)}
+                if slots.material.envi_con_type in dcdict:
+                    slots.material.diffuse_color = dcdict[slots.material.envi_con_type]
+    
+            for poly in en_obj.data.polygons:
+                if en_obj.data.materials[poly.material_index].envi_con_type == 'None' or (en_obj.data.materials[poly.material_index].envi_con_makeup == '1' and en_obj.data.materials[poly.material_index].envi_layero == '0'):
+                    poly.select = True 
+                    
+            selmesh('delf')
+            en_obj.select = False
+            bm = bmesh.new()
+            bm.from_mesh(en_obj.data)
+            bmesh.ops.triangulate(bm, faces = [face for face in bm.faces if en_obj.data.materials[face.material_index].envi_con_type == 'Shading'])
+            bm.transform(en_obj.matrix_world)
+            en_obj["volume"] = bm.calc_volume()
+            bm.transform(en_obj.matrix_world.inverted())
+            bm.to_mesh(en_obj.data)        
+            bm.free()
             
-        bpy.data.scenes[0].layers[0:2] = True, False
-        obj.select = True
-        scene.objects.active = obj
-
+            if en_obj.envi_type == '0':
+                if en_obj.name not in [node.zone for node in enng.nodes if hasattr(node, 'zone')]:
+                    enng.nodes.new(type = 'EnViZone').zone = en_obj.name
+                else:
+                    for node in enng.nodes:
+                        if hasattr(node, 'zone') and node.zone == en_obj.name:
+                            node.zupdate(bpy.context)
+                for node in enng.nodes:
+                    if hasattr(node, 'emszone') and node.emszone == en_obj.name:
+                        node.zupdate(bpy.context)
+    
+            if any([mat.envi_afsurface for mat in en_obj.data.materials]):
+                enng['enviparams']['afn'] = 1
+                if 'Control' not in [node.bl_label for node in enng.nodes]:
+                    enng.nodes.new(type = 'AFNCon')         
+                    enng.use_fake_user = 1
+                
+            bpy.data.scenes[0].layers[0:2] = True, False
+            obj.select = True
+            scene.objects.active = obj
+        
+        elif obj.envi_type == '0':
+            bpy.ops.object.duplicate()
+            en_obj = scene.objects.active
+            if not en_obj.material_slots:
+                if 'en_shading' not in [m.name for m in bpy.data.materials]:
+                    shadmat = bpy.data.materials.new('en_shading')
+                else:
+                    shadmat = bpy.data.materials['en_shading']
+                bpy.ops.object.material_slot_add()
+                
+            else:
+                while len(en_obj.material_slots) > 1:
+                    bpy.ops.object.material_slot_remove()
+            en_obj.material_slots[0].material = shadmat
+            en_obj.material_slots[0].material.diffuse_color = (1, 0, 0)
+                
 def writeafn(exp_op, en_idf, enng):
     badnodes = [node for node in enng.nodes if node.use_custom_color]
     for node in badnodes:

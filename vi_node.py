@@ -314,8 +314,6 @@ class LiViNode(bpy.types.Node, ViNodes):
             else:
                 newrow(layout, 'Source file:', self, 'sourcemenu2')
             row = layout.row()
-            row.label('Source file:')
-            row = layout.row()
             if self.sourcemenu2 == '1' and self.cbanalysismenu in ('2', '3', '4'):
                 row.operator('node.mtxselect', text = 'Select MTX').nodeid = self['nodeid']
                 row = layout.row()
@@ -390,7 +388,7 @@ class LiViNode(bpy.types.Node, ViNodes):
         elif self.contextmenu == "CBDM":
             if (self.cbanalysismenu in ('0', '1') and self.sourcemenu == '0') or (self.cbanalysismenu in ('2', '3', '4') and self.sourcemenu2 == '0'):
                 self['mtxfile'] = cbdmmtx(self, scene, self.inputs['Location in'].links[0].from_node, export_op)
-            elif self.cbanalysismenu in ('2', '3', '4') and self.sourcemenu == '1':
+            elif self.cbanalysismenu in ('2', '3', '4') and self.sourcemenu2 == '1':
                 self['mtxfile'] = self.mtxname
 
             if self.cbanalysismenu in ('0', '1'):
@@ -403,7 +401,7 @@ class LiViNode(bpy.types.Node, ViNodes):
                         self.outputs['Context out']['Options']['MTX'] = mtxfile.read()
                 else:
                     with open(self.mtxname, 'r') as mtxfile:
-                        self.outputs['Context out']['Text'][str(scene['liparams']['fs'])] = mtxfile.read()
+                        self.outputs['Context out']['Options']['MTX'] = mtxfile.read()
 
         elif self.contextmenu == "Compliance":
             self['skytypeparams'] = ("-b 22.86 -c", "-b 22.86 -c", "+s")[int(self.canalysismenu)]

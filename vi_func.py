@@ -550,7 +550,7 @@ def udidacalcapply(self, scene, frames, rccmds, simnode):
     bm = bmesh.new()
     bm.from_mesh(self.data)
     clearlayers(bm)
-    geom = bm.verts if self['cpoint'] == 1 else bm.faces
+    geom = bm.verts if self['cpoint'] == '1' else bm.faces
     cindex = geom.layers.int['cindex']
     if self.get('wattres'):
         del self['wattres']
@@ -1440,7 +1440,7 @@ def wind_rose(maxws, wrsvg, wrtype):
                 lcolsplit = line.split(';')
                 for lcol in lcolsplit:                
                     if 'style="fill:#' in lcol and lcol[-6:] != 'ffffff':
-                        for pos in spos + lpos:
+                        for pos in (spos + lpos)[::-1]:
                             vs.append(bm.verts.new(pos))                        
                         if len(vs) > 2:
                             nf = bm.faces.new(vs)

@@ -296,7 +296,7 @@ def lividisplay(self, scene):
                 g[res] = g[livires]        
         bins = array([0.05*i for i in range(1, 20)])
         nmatis = digitize(vals, bins)
-#        bm.to_mesh(self.data)
+        bm.to_mesh(self.data)
         bm.free()
         self.data.polygons.foreach_set('material_index', nmatis)
         if scene['liparams']['fe'] > scene['liparams']['fs']:

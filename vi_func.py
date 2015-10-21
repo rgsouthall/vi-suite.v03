@@ -289,7 +289,7 @@ def lividisplay(self, scene):
             vals = array([(f[livires] - sminres)/sresdiff for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
                     ([(sum([vert[livires] for vert in f.verts])/len(f.verts) - sminres)/sresdiff for f in bm.faces])
         else:
-            vals = array([max(scene['liparams']['maxres'].values()) for g in geom])
+            vals = array([max(scene['liparams']['maxres'].values()) for g in bm.faces])
             
         if livires != res:
             for g in geom:
@@ -703,6 +703,8 @@ def recalculate_text(scene):
         for o in [o for o in bpy.data.objects if o.get('VIType') and o['VIType'] == resdict[res][0] and o.children]:
             txt = o.children[0] 
             sf = scene.frame_current if scene.frame_current <= scene.frame_end else scene.frame_end
+#            print(resdict[res][1])
+#            print(o['envires'][res][sf])
             txt.data.body = ("{:.1f}", "{:.0f}")[res in ('Heat', 'CO2')].format(o['envires'][res][sf]) + resdict[res][1]
         
 def envilres(scene, resnode):
@@ -843,7 +845,7 @@ def radpoints(o, faces, sks):
         if sks:
             ventries = ''.join([" {0[0]} {0[1]} {0[2]}\n".format((o.matrix_world*mathutils.Vector((v[skl0][0]+(v[skl1][0]-v[skl0][0])*skv1, v[skl0][1]+(v[skl1][1]-v[skl0][1])*skv1, v[skl0][2]+(v[skl1][2]-v[skl0][2])*skv1)))) for v in face.verts])
         else:
-            ventries = ''.join([" {0[0]:.3f} {0[1]:.3f} {0[2]:.3f}\n".format(v.co) for v in face.verts])
+            ventries = ''.join([" {0[0]:.5f} {0[1]:.5f} {0[2]:.5f}\n".format(v.co) for v in face.verts])
         fentries[f] = ''.join((fentry, ventries+'\n'))        
     return ''.join(fentries)
                        

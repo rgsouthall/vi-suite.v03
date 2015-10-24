@@ -1504,6 +1504,8 @@ def compass(loc, scale, wro, mat):
     
     bmesh.ops.delete(bm, geom = [edge for edge in bm.edges if edge.select], context = 2)
     newgeo = bmesh.ops.extrude_edge_only(bm, edges = bm.edges, use_select_history=False)
+    [face.normal_flip() for face in bm.faces]
+        
     
     for v, vert in enumerate(newgeo['geom'][:1320]):
         vert.co = vert.co + (vert.co - coo.location).normalized() * scale * (0.0025, 0.005)[v > 1187]
@@ -1531,6 +1533,19 @@ def compass(loc, scale, wro, mat):
     bm.free()
 
     return objoin(txts + [coo] + [wro])
+    
+def retvpvloc(context):
+    view_mat = context.space_data.region_3d.perspective_matrix
+    view_pivot = context.region_data.view_location
+
+    if context.space_data.region_3d.is_perspective:
+        vw = mathutils.Vector((-view_mat[3][0], -view_mat[3][1], -view_mat[3][2])).normalized()
+        view_location = view_pivot + (vw * bpy.context.region_data.view_distance)    
+    else:
+        vw =  mathutils.Vector((0.0, 0.0, 1.0))
+        vw.rotate(bpy.context.region_data.view_rotation)
+        view_location = view_pivot + vw.normalized()*bpy.context.region_data.view_distance * 100 
+    return (view_location, view_mat, vw)
 
 def windnum(maxws, loc, scale, wr):
     txts = []

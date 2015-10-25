@@ -66,45 +66,39 @@ def confunc(i):
 def eupdate(self, context):
     scene = context.scene
     maxo, mino = scene.vi_leg_max, scene.vi_leg_min
-      
-    for frame in range(scene['liparams']['fs'], scene['liparams']['fe'] + 1):
-        for o in [obj for obj in bpy.data.objects if obj.lires == 1 and obj.data.shape_keys and str(frame) in [sk.name for sk in obj.data.shape_keys.key_blocks]]:  
-            bm = bmesh.new()
-            bm.from_mesh(o.data)  
-            bm.normal_update()
-            bm.transform(o.matrix_world)            
-            skb = bm.verts.layers.shape['Basis']
-            skf = bm.verts.layers.shape[str(frame)]
-
-            if str(frame) in o['omax']:
-                if bm.faces.layers.float.get('res{}'.format(frame)):
-                    res = bm.faces.layers.float['res{}'.format(frame)] #if context.scene['cp'] == '0' else bm.verts.layers.float['res{}'.format(frame)]                
-                    faces = [f for f in bm.faces if f.select]
-                    extrudes = [0.1 * scene.vi_disp_3dlevel * (math.log10(maxo * (f[res] + 1 - mino)/(maxo - mino))) * f.normal.normalized() for f in faces] if scene.vi_leg_scale == '1' else \
-                            [scene.vi_disp_3dlevel * ((f[res] - mino)/(maxo - mino)) * f.normal.normalized() for f in faces]
-                    for f, face in enumerate(faces):
-                        for v in face.verts:
-                            v[skf] = v[skb] + extrudes[f]
-                
-                elif bm.verts.layers.float.get('res{}'.format(frame)):
-                    res = bm.verts.layers.float['res{}'.format(frame)]
-                    extrudes = [scene.vi_disp_3dlevel * ((v[res]-mino)/(maxo - mino)) * v.normal.normalized() for v in bm.verts] if scene.vi_leg_scale == '0' else \
-                                [0.1 * scene.vi_disp_3dlevel * (math.log10(maxo * (v[res] + 1 - mino)/(maxo - mino))) * v.normal.normalized() for v in bm.verts]  
-#                    earray = numpy.add(array(extrudes), array([vert[skb] for vert in bm.verts])).flatten()
-
-                    for v, vert in enumerate(bm.verts):
-#                        vert[skf] = earray[v]
-                        vert[skf] = vert[skb] + extrudes[v]
-#            vecs = [v[skb] + extrudes[vi] for vi, v in enumerate(bm.verts)]
-#            coords = [0] * 
-#            print(earray)
-#            print(len([v[skb] + extrudes[vi] for vi, v in enumerate(bm.verts)]), len(o.data.shape_keys.key_blocks[str(frame)].data))            
-#            o.data.shape_keys.key_blocks[str(frame)].data.foreach_set('co', earray)
-#            o.data.update()
-
-            bm.transform(o.matrix_world.inverted())
-            bm.to_mesh(o.data)
-            bm.free()
+    odiff = scene.vi_leg_max - scene.vi_leg_min
+    if odiff:  
+        for frame in range(scene['liparams']['fs'], scene['liparams']['fe'] + 1):
+            for o in [obj for obj in bpy.data.objects if obj.lires == 1 and obj.data.shape_keys and str(frame) in [sk.name for sk in obj.data.shape_keys.key_blocks]]:  
+                bm = bmesh.new()
+                bm.from_mesh(o.data)  
+                bm.normal_update()
+                bm.transform(o.matrix_world)            
+                skb = bm.verts.layers.shape['Basis']
+                skf = bm.verts.layers.shape[str(frame)]
+    
+                if str(frame) in o['omax']:
+                    if bm.faces.layers.float.get('res{}'.format(frame)):
+                        res = bm.faces.layers.float['res{}'.format(frame)] #if context.scene['cp'] == '0' else bm.verts.layers.float['res{}'.format(frame)]                
+                        faces = [f for f in bm.faces if f.select]
+                        extrudes = [0.1 * scene.vi_disp_3dlevel * (math.log10(maxo * (f[res] + 1 - mino)/odiff)) * f.normal.normalized() for f in faces] if scene.vi_leg_scale == '1' else \
+                            [scene.vi_disp_3dlevel * ((f[res] - mino)/odiff) * f.normal.normalized() for f in faces]
+    
+                        for f, face in enumerate(faces):
+                            for v in face.verts:
+                                v[skf] = v[skb] + extrudes[f]
+                    
+                    elif bm.verts.layers.float.get('res{}'.format(frame)):
+                        res = bm.verts.layers.float['res{}'.format(frame)]
+                        extrudes = [scene.vi_disp_3dlevel * ((v[res]-mino)/odiff) * v.normal.normalized() for v in bm.verts] if scene.vi_leg_scale == '0' else \
+                                    [0.1 * scene.vi_disp_3dlevel * (math.log10(maxo * (v[res] + 1 - mino)/odiff)) * v.normal.normalized() for v in bm.verts]  
+    
+                        for v, vert in enumerate(bm.verts):
+                            vert[skf] = vert[skb] + extrudes[v]
+    
+                bm.transform(o.matrix_world.inverted())
+                bm.to_mesh(o.data)
+                bm.free()
 
 def tupdate(self, context):
     for o in [o for o in context.scene.objects if o.type == 'MESH'  and 'lightarray' not in o.name and o.hide == False and o.layers[context.scene.active_layer] == True and o.get('lires')]:
@@ -125,16 +119,16 @@ def legupdate(self, context):
             bm = bmesh.new()
             bm.from_mesh(o.data)
             if bm.faces.layers.float.get('res{}'.format(frame)):
-                livires = bm.faces.layers.float['res{}'.format(frame)] 
+                geom = bm.faces
+                livires = geom.layers.float['res{}'.format(frame)] 
             elif bm.verts.layers.float.get('res{}'.format(frame)):
-                livires = bm.verts.layers.float['res{}'.format(frame)]                
-            try:
+                geom = bm.verts
+                livires = geom.layers.float['res{}'.format(frame)]                
+            if legdiff:
                 vals = array([(f[livires] - scene.vi_leg_min)/legdiff for f in bm.faces]) if scene['liparams']['cp'] == '0' else \
                         array([(sum([vert[livires] for vert in f.verts])/len(f.verts) - scene.vi_leg_min)/legdiff for f in bm.faces])
-
-            except Exception as e:
-                print('there is an error in results retrieval ' + e)
-                vals = array([0 for f in bm.faces])
+            else:
+                vals = array([scene.vi_leg_max for x in range(len(geom))])
             bm.free()
             if scene.vi_leg_scale == '0':
                 bins = array([0.05 * i for i in range(1, 20)])

@@ -238,7 +238,6 @@ def basiccalcapply(self, scene, frames, rtcmds):
 
     bm.to_mesh(self.data)
     bm.free()
-#    scene.li_disp_basic = '2'
     
 def lhcalcapply(self, scene, frames, rtcmds):
     selobj(scene, self)
@@ -1461,7 +1460,6 @@ def wind_rose(maxws, wrsvg, wrtype):
                 bpy.ops.object.material_slot_add()
                 wro.material_slots[-1].material = bpy.data.materials['wr-000000']
             
-
     if wrtype in ('0', '1', '3', '4'):            
         thick = scale * 0.005 if wrtype == '4' else scale * 0.0025
         faces = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness = thick, use_even_offset = True)['faces']
@@ -1483,7 +1481,6 @@ def wind_rose(maxws, wrsvg, wrtype):
     wrbo.material_slots[-1].material = bpy.data.materials['wr-base']
     return (objoin((wrbo, wro)), scale)
     
-
 def compass(loc, scale, wro, mat):
     txts = []
     come = bpy.data.meshes.new("Compass")   

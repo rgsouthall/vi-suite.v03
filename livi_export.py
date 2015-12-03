@@ -56,7 +56,6 @@ def radgexport(export_op, node, **kwargs):
 
         # Geometry export routine
 
- #       rtpoints = ''
         gradfile = "# Geometry \n\n"
         radmesh(scene, eolist, export_op)
         for o in eolist:

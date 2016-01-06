@@ -178,7 +178,7 @@ class LiViNode(bpy.types.Node, ViNodes):
         if self.contextmenu == 'Basic' and self['skynum'] < 2:
             starttime = datetime.datetime(datetime.datetime.now().year, 1, 1, int(self.shour), int((self.shour - int(self.shour))*60)) + datetime.timedelta(self.sdoy - 1) if self['skynum'] < 3 else datetime.datetime(2013, 1, 1, 12)                                       
             self['endframe'] = self.startframe + int(((24 * (self.edoy - self.sdoy) + self.ehour - self.shour)/self.interval)) if self.animated else [scene.frame_current]
-            frames = range(self.startframe, self['endframe']) if self.animated else [scene.frame_current]
+            frames = range(self.startframe, self['endframe'] + 1) if self.animated else [scene.frame_current]
             scene.frame_start, scene.frame_end = self.startframe, frames[-1]
             if suns:
                 sun = suns[0]

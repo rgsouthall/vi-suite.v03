@@ -108,8 +108,7 @@ def li_display(simnode):
         if scene.vi_disp_3d == 1 and scene['liparams']['cp'] == '0':
             for face in bmesh.ops.extrude_discrete_faces(bm, faces = bm.faces)['faces']:
                 face.select = True
-        
-                
+                        
         bm.transform(o.matrix_world.inverted())
         bm.to_mesh(ores.data)
         ores.lividisplay(scene)

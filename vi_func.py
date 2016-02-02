@@ -1263,8 +1263,8 @@ def processf(pro_op, node):
                 except Exception as e:
                     print('ext', e)
         
-    node.dsdoy = datetime.datetime(datetime.datetime.now().year, allresdict['Month'][0], allresdict['Day'][0]).timetuple().tm_yday
-    node.dedoy = datetime.datetime(datetime.datetime.now().year, allresdict['Month'][-1], allresdict['Day'][-1]).timetuple().tm_yday
+    node.dsdoy = datetime.datetime(2015, allresdict['Month'][0], allresdict['Day'][0]).timetuple().tm_yday
+    node.dedoy = datetime.datetime(2015, allresdict['Month'][-1], allresdict['Day'][-1]).timetuple().tm_yday
     node['dos'], node['resdict'], node['ctypes'], node['ztypes'], node['zrtypes'], node['ltypes'], node['lrtypes'], node['entypes'], node['enrtypes'] = dos, resdict, ctypes, ztypes, zrtypes, ltypes, lrtypes, entypes, enrtypes
     node['allresdict'] = allresdict
     if node.outputs['Results out'].links:

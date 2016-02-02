@@ -7,6 +7,7 @@ def label(cat, stat, time, metric):
     return('{} {} {} {}'.format(st, catdict[cat], ('Hourly', 'Daily', 'Monthly')[int(time)], metric))
     
 def statdata(res, stat):
+    print(res)
     if stat == 'Average':
         return([sum(r)/len(r) for r in res])
     elif stat == 'Maximum':

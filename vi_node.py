@@ -55,12 +55,12 @@ class ViLoc(bpy.types.Node, ViNodes):
             with open(self.weather, 'r') as epwfile:
                 epwlines = epwfile.readlines()[8:]
                 epwcolumns = list(zip(*[epwline.split(',') for epwline in epwlines]))
-                allresdict['Month'], allresdict['Day'], allresdict['Hour'] = [epwcolumns[c] for c in range(1,4)]
+                allresdict['Month'], allresdict['Day'], allresdict['Hour'] = [[int(v) for v in epwcolumns[c]] for c in range(1,4)]
                 allresdict['dos'] = [int(d/24) + 1 for d in range(len(epwlines))]
                 for c in {"Temperature ("+ u'\u00b0'+"C)": 6, 'Humidity (%)': 8, "Direct Solar (W/m"+u'\u00b2'+")": 14, "Diffuse Solar (W/m"+u'\u00b2'+")": 15,
                           'Wind Direction (deg)': 20, 'Wind Speed (m/s)': 21}.items():
                     resdict[str(c[1])] = ['Climate', c[0]]
-                    allresdict[str(c[1])] = list(epwcolumns[c[1]])
+                    allresdict[str(c[1])] = list([float(v) for v in epwcolumns[c[1]]])
                     ctypes.append(c[0])
                 self['resdict'], self['allresdict'], self['ctypes'] = resdict, allresdict, ctypes
                 self.outputs['Location out']['epwtext'] = epwfile.read()
@@ -176,7 +176,7 @@ class LiViNode(bpy.types.Node, ViNodes):
         suns = [ob for ob in scene.objects if ob.type == 'LAMP' and ob.data.type == 'SUN'] 
         
         if self.contextmenu == 'Basic' and self['skynum'] < 2:
-            starttime = datetime.datetime(datetime.datetime.now().year, 1, 1, int(self.shour), int((self.shour - int(self.shour))*60)) + datetime.timedelta(self.sdoy - 1) if self['skynum'] < 3 else datetime.datetime(2013, 1, 1, 12)                                       
+            starttime = datetime.datetime(2015, 1, 1, int(self.shour), int((self.shour - int(self.shour))*60)) + datetime.timedelta(self.sdoy - 1) if self['skynum'] < 3 else datetime.datetime(2013, 1, 1, 12)                                       
             self['endframe'] = self.startframe + int(((24 * (self.edoy - self.sdoy) + self.ehour - self.shour)/self.interval)) if self.animated else [scene.frame_current]
             frames = range(self.startframe, self['endframe'] + 1) if self.animated else [scene.frame_current]
             scene.frame_start, scene.frame_end = self.startframe, frames[-1]
@@ -343,8 +343,8 @@ class LiViNode(bpy.types.Node, ViNodes):
             self.nodeupdate(bpy.context) 
     
     def preexport(self):
-        self.starttime = datetime.datetime(datetime.datetime.now().year, 1, 1, int(self.shour), int((self.shour - int(self.shour))*60)) + datetime.timedelta(self.sdoy - 1) if self['skynum'] < 3 else datetime.datetime(datetime.datetime.now().year, 1, 1, 12)
-        self.endtime = datetime.datetime(2013, 1, 1, int(self.ehour), int((self.ehour - int(self.ehour))*60)) + datetime.timedelta(self.edoy - 1) if self.animated and self['skynum'] < 3 else self.starttime
+        self.starttime = datetime.datetime(2015, 1, 1, int(self.shour), int((self.shour - int(self.shour))*60)) + datetime.timedelta(self.sdoy - 1) if self['skynum'] < 3 else datetime.datetime(2015, 1, 1, 12)
+        self.endtime = datetime.datetime(2015, 1, 1, int(self.ehour), int((self.ehour - int(self.ehour))*60)) + datetime.timedelta(self.edoy - 1) if self.animated and self['skynum'] < 3 else self.starttime
         self['skynum'] = int(self.skymenu)
         self['hours'] = 0 if not self.animated or int(self.skymenu) > 2  else (self.endtime-self.starttime).seconds/3600
         self['epwbase'] = os.path.splitext(os.path.basename(self.inputs['Location in'].links[0].from_node.weather))
@@ -407,11 +407,11 @@ class LiViNode(bpy.types.Node, ViNodes):
             self['skytypeparams'] = ("-b 22.86 -c", "-b 22.86 -c", "+s")[int(self.canalysismenu)]
             skyentry = sunexport(scene, self, 0, 0) + skyexport(3)
             if self.canalysismenu in ('0', '1'):
-                self.starttime = datetime.datetime(datetime.datetime.now().year, 1, 1, 12)
+                self.starttime = datetime.datetime(2015, 1, 1, 12)
                 if self.hdr:
                     hdrexport(scene, 0, scene.frame_current, self, skyentry)
             else:
-                self.starttime = datetime.datetime(datetime.datetime.now().year, 9, 11, 9)
+                self.starttime = datetime.datetime(2015, 9, 11, 9)
             self.outputs['Context out']['Text'][str(scene['liparams']['fs'])] = skyentry
     
     def postexport(self):    
@@ -848,8 +848,8 @@ class ViEnInNode(bpy.types.Node, ViNodes):
                 if line.split(',')[0].lstrip(' ').upper() == 'ZONE' and not line.split(',')[1].strip('\n'):
                     oblist.append(idfflines[l+1].split(',')[0].lstrip(' '))
                 if line.split(',')[0].lstrip(' ').upper() == 'RUNPERIOD':
-                    self.sdoy = datetime.datetime(datetime.datetime.now().year, int(idfflines[l+2].split(',')[0].lstrip(' ')), int(idfflines[l+3].split(',')[0].lstrip(' '))).timetuple().tm_yday
-                    self.edoy = datetime.datetime(datetime.datetime.now().year, int(idfflines[l+4].split(',')[0].lstrip(' ')), int(idfflines[l+5].split(',')[0].lstrip(' '))).timetuple().tm_yday
+                    self.sdoy = datetime.datetime(2015, int(idfflines[l+2].split(',')[0].lstrip(' ')), int(idfflines[l+3].split(',')[0].lstrip(' '))).timetuple().tm_yday
+                    self.edoy = datetime.datetime(2015, int(idfflines[l+4].split(',')[0].lstrip(' ')), int(idfflines[l+5].split(',')[0].lstrip(' '))).timetuple().tm_yday
         self.newdir = bpy.context.scene['viparams']['newdir']
         self['oblist'] = oblist
 

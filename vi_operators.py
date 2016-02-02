@@ -689,9 +689,7 @@ class NODE_OT_EnSim(bpy.types.Operator):
                     return {'PASS_THROUGH'}
                 except:
                     return {'PASS_THROUGH'}
-#            elif self.frame < scene['enparams']['fe']:
-#                self.frame += 1
-#                bpy.ops.node.ensim('INVOKE_DEFAULT').nodeid = self.nodeid
+
             else:
                 for fname in [fname for fname in os.listdir('.') if fname.split(".")[0] == self.simnode.resname]:
                     os.remove(os.path.join(scene['viparams']['newdir'], fname))
@@ -703,7 +701,7 @@ class NODE_OT_EnSim(bpy.types.Operator):
                 if self.simnode.resname+".err" not in [im.name for im in bpy.data.texts]:
                     bpy.data.texts.load(os.path.join(scene['viparams']['newdir'], self.simnode.resname+".err"))
 
-                if 'EnergyPlus Terminated--Error(s) Detected' in self.esimrun.stderr.read().decode() or not [f for f in nfns if f.split(".")[1] == "eso"] or self.simnode.run == 0:
+                if 'EnergyPlus Terminated--Error(s) Detected' in self.esimrun.stderr.read().decode() or not [f for f in nfns if f.split(".")[1] == "eso"]:
                     errtext = "There is no results file. Check you have selected results outputs and that there are no errors in the .err file in the Blender text editor." if not [f for f in nfns if f.split(".")[1] == "eso"] else "There was an error in the input IDF file. Check the *.err file in Blender's text editor."
                     self.report({'ERROR'}, errtext)
                     self.simnode.run = -1
